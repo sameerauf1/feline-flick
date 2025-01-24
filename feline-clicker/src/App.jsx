@@ -10,19 +10,18 @@ function App() {
   const [currentBreed, setCurrentBreed] = useState(null)
   const [allBreeds, setAllBreeds] = useState([])
 
-  // Remove the initial cat fetch from useEffect
+  // Add a debug log for breeds array
   useEffect(() => {
-    // Only fetch breeds on initial load
     const fetchBreeds = async () => {
       try {
         const response = await fetch('https://api.thecatapi.com/v1/breeds')
         const data = await response.json()
-        setAllBreeds(data)
+        console.log('Fetched breeds:', data)  // Debug log
+        setBreeds(data)
       } catch (error) {
         console.error('Error fetching breeds:', error)
       }
     }
-    
     fetchBreeds()
   }, [])
 
@@ -53,13 +52,25 @@ function App() {
   }
 
   const addToFavorites = (breed) => {
-    setFavoriteBreeds(prev => new Set([...prev, breed.id]))
+    console.log('Adding breed to favorites:', breed)  // Debug log
+    console.log('Current favorites before:', Array.from(favoriteBreeds))  // Debug log
+    
+    setFavoriteBreeds(prev => {
+      const next = new Set(prev)
+      next.add(breed.id)
+      console.log('New favorites will be:', Array.from(next))  // Debug log
+      return next
+    })
   }
 
   const removeFromFavorites = (breedId) => {
+    console.log('Removing breed:', breedId)  // Debug log
+    console.log('Current favorites before:', Array.from(favoriteBreeds))  // Debug log
+    
     setFavoriteBreeds(prev => {
       const next = new Set(prev)
       next.delete(breedId)
+      console.log('New favorites will be:', Array.from(next))  // Debug log
       return next
     })
   }
@@ -144,13 +155,21 @@ function App() {
         )}
       </div>
       <div className="favorites-list">
-        <h2>Favorite Breeds</h2>
+        <h2>Favorite Breeds ({favoriteBreeds.size})</h2>
         <div className="favorite-breeds">
           {Array.from(favoriteBreeds).map(breedId => {
             const breed = breeds.find(b => b.id === breedId)
+            console.log('Looking for breed:', breedId, 'Found:', breed)  // Debug log
+            console.log('Available breeds:', breeds)  // Debug log
+            
+            if (!breed) {
+              console.log('Breed not found:', breedId)  // Debug log
+              return null
+            }
+            
             return (
               <div key={breedId} className="favorite-breed">
-                <span>{breed?.name}</span>
+                <span>{breed.name}</span>
                 <button 
                   className="remove-favorite"
                   onClick={() => removeFromFavorites(breedId)}

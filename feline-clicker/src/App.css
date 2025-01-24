@@ -234,3 +234,14 @@ h1 {
 .discover-button:active {
   transform: translateY(0);
 }
+
+.wiki-link {
+  text-decoration: none;
+  color: #007bff;  /* Bootstrap primary color */
+  font-weight: bold;
+  transition: color 0.2s;
+}
+
+.wiki-link:hover {
+  color: #0056b3;  /* Darker shade on hover */
+}

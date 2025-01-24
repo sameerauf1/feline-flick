@@ -6,7 +6,7 @@ function App() {
   const [count, setCount] = useState(0)
   const [catImage, setCatImage] = useState(null)
   const [breeds, setBreeds] = useState([])
-  const [favoriteBreeds, setFavoriteBreeds] = useState(new Set())
+  const [favoriteBreeds, setFavoriteBreeds] = useState(new Map())
   const [currentBreed, setCurrentBreed] = useState(null)
   const [allBreeds, setAllBreeds] = useState([])
 
@@ -29,7 +29,7 @@ function App() {
     try {
       console.log('Fetching new cat...')  // Debug log
 
-      const excludeBreeds = Array.from(favoriteBreeds).join(',')
+      const excludeBreeds = Array.from(favoriteBreeds.keys()).join(',')
       const url = `https://api.thecatapi.com/v1/images/search?has_breeds=1&limit=1${excludeBreeds ? `&breed_ids_exclude=${excludeBreeds}` : ''}`
       
       const response = await fetch(url, {
@@ -52,13 +52,17 @@ function App() {
   }
 
   const addToFavorites = (breed) => {
-    console.log('Adding breed to favorites:', breed)  // Debug log
-    console.log('Current favorites before:', Array.from(favoriteBreeds))  // Debug log
-    
+    if (favoriteBreeds.has(breed.id)) {
+      alert('This breed is already in your favorites!')
+      return
+    }
     setFavoriteBreeds(prev => {
-      const next = new Set(prev)
-      next.add(breed.id)
-      console.log('New favorites will be:', Array.from(next))  // Debug log
+      const next = new Map(prev)
+      next.set(breed.id, {
+        id: breed.id,
+        name: breed.name,
+        wikipedia_url: breed.wikipedia_url  // Save the wiki URL
+      })
       return next
     })
   }
@@ -68,7 +72,7 @@ function App() {
     console.log('Current favorites before:', Array.from(favoriteBreeds))  // Debug log
     
     setFavoriteBreeds(prev => {
-      const next = new Set(prev)
+      const next = new Map(prev)
       next.delete(breedId)
       console.log('New favorites will be:', Array.from(next))  // Debug log
       return next
@@ -157,28 +161,29 @@ function App() {
       <div className="favorites-list">
         <h2>Favorite Breeds ({favoriteBreeds.size})</h2>
         <div className="favorite-breeds">
-          {Array.from(favoriteBreeds).map(breedId => {
-            const breed = breeds.find(b => b.id === breedId)
-            console.log('Looking for breed:', breedId, 'Found:', breed)  // Debug log
-            console.log('Available breeds:', breeds)  // Debug log
-            
-            if (!breed) {
-              console.log('Breed not found:', breedId)  // Debug log
-              return null
-            }
-            
-            return (
-              <div key={breedId} className="favorite-breed">
-                <span>{breed.name}</span>
+          {Array.from(favoriteBreeds.values()).map(breed => (
+            <div key={breed.id} className="favorite-breed">
+              <span className="breed-name">{breed.name}</span>
+              <div className="breed-actions">
+                {breed.wikipedia_url && (
+                  <a 
+                    href={breed.wikipedia_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="wiki-link"
+                  >
+                    Wiki Link
+                  </a>
+                )}
                 <button 
                   className="remove-favorite"
-                  onClick={() => removeFromFavorites(breedId)}
+                  onClick={() => removeFromFavorites(breed.id)}
                 >
                   ❌
                 </button>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
